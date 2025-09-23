@@ -1,0 +1,22 @@
+[package]
+name = "game-of-life"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+gba = "0.14.1"
+rand_xoshiro = "0.6"
+voladdress = "1.4.0"
+
+
+[package.metadata.docs.rs]
+default-target = "thumbv4t-none-eabi"
+cargoflags = ["-Zbuild-std=core"]
+rustdoc-args = ["--cfg","docs_rs"]
+
+[profile.dev]
+panic = "abort"
+
+[profile.release]
+panic = "abort"
+debug = true
