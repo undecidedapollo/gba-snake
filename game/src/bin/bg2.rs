@@ -2,7 +2,7 @@
 #![no_main]
 
 use core::{fmt::Write, ptr::copy_nonoverlapping};
-use game_of_life::{gba_warning, logger};
+use snake::{gba_warning, logger};
 use gba::prelude::*;
 
 #[panic_handler]

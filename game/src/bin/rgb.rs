@@ -1,8 +1,8 @@
 #![no_std]
 #![no_main]
 
-use game_of_life::{gba_error, gba_info, logger};
 use gba::prelude::*;
+use snake::{gba_error, gba_info, logger};
 
 const SCREEN_WIDTH: usize = 240;
 const SCREEN_HEIGHT: usize = 160;
