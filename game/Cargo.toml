@@ -20,3 +20,10 @@ panic = "abort"
 [profile.release]
 panic = "abort"
 debug = true
+lto = "thin"       # or "thin" for faster compile, "fat" for max optimization
+opt-level = "z"
+
+[profile.release-fat]
+inherits = "release"
+lto = "fat"       # or "thin" for faster compile, "fat" for max optimization
+codegen-units = 1 # lets LLVM see the whole crate at once

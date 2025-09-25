@@ -43,7 +43,16 @@ extern "C" fn main() -> ! {
     IME.write(true);
 
     VBlankIntrWait();
-    gba_error!("{:?}", TEST_PALETTE.0);
+
+    let no_display = ObjAttr0::new().with_style(ObjDisplayStyle::NotDisplayed);
+    OBJ_ATTR0.iter().for_each(|va| va.write(no_display));
+
+    DISPCNT.write(
+        DisplayControl::new()
+            .with_video_mode(VideoMode::_0)
+            .with_obj_vram_1d(true)
+            .with_show_obj(true),
+    );
 
     unsafe {
         copy_nonoverlapping(
@@ -70,15 +79,6 @@ extern "C" fn main() -> ! {
     obj.2 = obj.2.with_tile_id(0);
 
     OBJ_ATTR_ALL.index(0).write(obj);
-    let no_display = ObjAttr0::new().with_style(ObjDisplayStyle::NotDisplayed);
-    OBJ_ATTR0.iter().skip(1).for_each(|va| va.write(no_display));
-
-    DISPCNT.write(
-        DisplayControl::new()
-            .with_video_mode(VideoMode::_0)
-            .with_obj_vram_1d(true)
-            .with_show_obj(true),
-    );
 
     let mut x = 100i16;
     let mut y = 50i16;
