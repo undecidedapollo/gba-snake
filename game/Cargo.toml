@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 gba = "0.14.1"
+num_enum = {version = "=0.7.4", default-features = false}
 rand_xoshiro = "0.6"
 voladdress = "1.4.0"
 
