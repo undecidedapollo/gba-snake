@@ -1,10 +1,8 @@
 #![no_std]
 #![no_main]
 
-use game_of_life::{gba_error, gba_info, keys, logger};
+use game_of_life::{gba_error, gba_info, logger};
 use gba::prelude::*;
-
-use keys::StatefulKeys;
 
 const SCREEN_WIDTH: usize = 240;
 const SCREEN_HEIGHT: usize = 160;
@@ -36,8 +34,6 @@ fn main() -> ! {
             .with_enabled(true),
     );
     BACKDROP_COLOR.write(Color::RED);
-
-    let mut keys = StatefulKeys::new();
 
     let mut row: usize = 0;
     let mut col: usize = 0;

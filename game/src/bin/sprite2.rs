@@ -2,7 +2,7 @@
 #![no_main]
 
 use core::{fmt::Write, ptr::copy_nonoverlapping};
-use game_of_life::{gba_error, gba_info, logger};
+use game_of_life::logger;
 use gba::prelude::*;
 
 #[panic_handler]
@@ -30,8 +30,8 @@ extern "C" fn irq_handler(b: IrqBits) {
 
 static TEST_TILE: gba::Align4<[u8; 256]> = include_aligned_bytes!("../../../asset_out/bob.sprite");
 
-static TEST_PALETTE: gba::Align4<[u8; 6]> =
-    include_aligned_bytes!("../../../asset_out/bob.palette");
+static TEST_PALETTE: gba::Align4<[u8; 16]> =
+    include_aligned_bytes!("../../../asset_out/shared.palette");
 
 #[unsafe(no_mangle)]
 extern "C" fn main() -> ! {

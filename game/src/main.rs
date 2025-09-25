@@ -1,13 +1,7 @@
 #![no_std]
 #![no_main]
 
-use core::cmp::max;
-
-use crate::keys::Edge;
-use game_of_life::keys;
 use gba::prelude::*;
-
-use keys::StatefulKeys;
 
 const SCREEN_WIDTH: usize = 240;
 const SCREEN_HEIGHT: usize = 160;
@@ -37,8 +31,6 @@ fn main() -> ! {
             .with_enabled(true),
     );
     BACKDROP_COLOR.write(Color::RED);
-
-    let mut keys = StatefulKeys::new();
 
     let mut row: usize = 0;
     let mut col: usize = 0;

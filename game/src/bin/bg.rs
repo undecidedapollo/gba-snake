@@ -1,8 +1,8 @@
 #![no_std]
 #![no_main]
 
-use core::{array, fmt::Write, ptr::copy_nonoverlapping};
-use game_of_life::{gba_error, gba_info, logger};
+use core::{fmt::Write, ptr::copy_nonoverlapping};
+use game_of_life::logger;
 use gba::prelude::*;
 
 #[panic_handler]
@@ -28,7 +28,7 @@ extern "C" fn irq_handler(b: IrqBits) {
     }
 }
 
-static bg_tiles: [u16; 64] = [
+static BG_TILES: [u16; 64] = [
     0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
     0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
     0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0101, 0x0202, 0x0101, 0x0202,
@@ -36,8 +36,8 @@ static bg_tiles: [u16; 64] = [
     0x0101, 0x0202, 0x0101, 0x0202, 0x0101, 0x0202, 0x0101, 0x0202, 0x0202, 0x0101, 0x0202, 0x0101,
     0x0202, 0x0101, 0x0202, 0x0101,
 ];
-static bg_pal: [u16; 4] = [0x4DA0, 0x0000, 0xFFFF, 0x0000];
-static bg_check: [u16; 1024] = [
+static BG_PAL: [u16; 4] = [0x4DA0, 0x0000, 0xFFFF, 0x0000];
+static BG_CHECK: [u16; 1024] = [
     0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
     0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
     0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
@@ -155,32 +155,32 @@ extern "C" fn main() -> ! {
 
     unsafe {
         copy_nonoverlapping(
-            bg_pal.as_ptr(),
+            BG_PAL.as_ptr(),
             BG_PALETTE.as_usize() as *mut u16,
-            bg_pal.len(),
+            BG_PAL.len(),
         );
 
         copy_nonoverlapping(
-            bg_tiles.as_ptr(),
+            BG_TILES.as_ptr(),
             CHARBLOCK0_8BPP.as_usize() as *mut u16,
-            bg_tiles.len(),
+            BG_TILES.len(),
         );
         copy_nonoverlapping(
-            bg_check.as_ptr(),
+            BG_CHECK.as_ptr(),
             TEXT_SCREENBLOCKS.get_frame(1).unwrap().as_usize() as *mut u16,
-            bg_check.len(),
+            BG_CHECK.len(),
         );
     }
 
     for i in 0..32 {
         BG_PALETTE
-            .index(bg_pal.len() + i)
+            .index(BG_PAL.len() + i)
             .write(make_color(i as u16, i as u16, i as u16));
     }
 
     let mut tile: [u8; 64] = core::array::repeat(0);
     for i in 0..32 {
-        let val = (bg_pal.len() + i) as u8;
+        let val = (BG_PAL.len() + i) as u8;
         for j in 0..64 {
             tile[j] = val;
         }
@@ -229,7 +229,6 @@ extern "C" fn main() -> ! {
     loop {
         VBlankIntrWait();
 
-        let k = FRAME_KEYS.read();
         BG0HOFS.write(bg0hscroll);
         BG1HOFS.write(bg1hscroll);
         bg1hscroll = bg1hscroll + 2;
