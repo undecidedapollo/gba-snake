@@ -2,7 +2,7 @@
 target = "thumbv4t-none-eabi"
 
 [unstable]
-build-std = ["core"]
+build-std = ["core", "alloc"]
 
 [target.thumbv4t-none-eabi]
 rustflags = ["-Clink-arg=-Tlinker_scripts/mono_boot.ld"]
