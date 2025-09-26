@@ -4,16 +4,19 @@ use gba::mmio::{CHARBLOCK0_8BPP, TEXT_SCREENBLOCKS};
 
 use crate::{
     assets::{AssetBgTile, FRUIT_BANANA, FRUIT_CHERRY},
+    math::Powers,
     rng::{self},
 };
 
 pub struct FruitManager {
     fruit_locs: [Option<(u16, u16)>; 5],
+    next_spawn: u16,
 }
 
 #[unsafe(link_section = ".ewram")]
 pub static mut FRUIT_MANAGER_STORAGE: FruitManager = FruitManager {
     fruit_locs: [None; 5],
+    next_spawn: 0,
 };
 
 impl FruitManager {
@@ -55,14 +58,23 @@ impl FruitManager {
         }
     }
 
-    pub fn try_eat_fruit(&mut self, loc: (u16, u16)) -> Option<()> {
-        let Some((idx, _)) = self.fruit_locs.iter().enumerate().find(|x| {
+    fn is_empty(&mut self) -> bool {
+        self.fruit_locs.iter().find(|x| x.is_some()).is_none()
+    }
+
+    fn fruit_exists_idx(&mut self, loc: (u16, u16)) -> Option<usize> {
+        let opt = self.fruit_locs.iter().enumerate().find(|x| {
             let Some((x, y)) = x.1 else {
                 return false;
             };
 
             return *x == loc.0 && *y == loc.1;
-        }) else {
+        });
+        opt.map(|x| x.0)
+    }
+
+    pub fn try_eat_fruit(&mut self, loc: (u16, u16)) -> Option<()> {
+        let Some(idx) = self.fruit_exists_idx(loc) else {
             return None;
         };
 
@@ -73,6 +85,10 @@ impl FruitManager {
             .get(loc.0 as usize, loc.1 as usize)
             .unwrap();
         new_idx.write(new_idx.read().with_tile(AssetBgTile::Blank.into()));
+
+        if self.next_spawn > 30 && self.is_empty() {
+            self.next_spawn = 30;
+        }
 
         Some(())
     }
@@ -87,8 +103,16 @@ impl FruitManager {
     }
 
     fn spawn_fruit_at_idx(&mut self, idx: usize) {
-        let x = (rng::next_u32() >> 8) as usize & 0b0000_1111;
-        let y = (rng::next_u32() >> 8) as usize & 0b0000_1111;
+        let mut x: usize = 0;
+        let mut y: usize = 0;
+        loop {
+            x = (rng::next_u32() >> 8) as usize & 0b0000_1111;
+            y = (rng::next_u32() >> 8) as usize & 0b0000_1111;
+            if let None = self.fruit_exists_idx((x as u16, y as u16)) {
+                break;
+            }
+        }
+
         let tile = if rng::next_bool() {
             AssetBgTile::Cherry
         } else {
@@ -97,5 +121,15 @@ impl FruitManager {
         let new_idx = TEXT_SCREENBLOCKS.get_frame(1).unwrap().get(x, y).unwrap();
         new_idx.write(new_idx.read().with_tile(tile.into()));
         self.fruit_locs[idx] = Some((x as u16, y as u16));
+    }
+
+    pub fn tick(&mut self) {
+        self.next_spawn = self.next_spawn.saturating_sub(1);
+
+        if self.next_spawn == 0 {
+            self.spawn_fruit();
+            let mask: u16 = (1 << Powers::_256.as_u16()) - 1;
+            self.next_spawn = (rng::next_u16() & mask) + 64;
+        }
     }
 }

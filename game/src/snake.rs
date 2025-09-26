@@ -166,7 +166,6 @@ impl Snake {
             self.bonus_movement_counter = self.bonus_movement_counter - 16;
             num_iterations += 1;
         }
-        gba_warning!("{}", num_iterations);
 
         let mut prev_x = head.1.x();
         let mut prev_y = head.0.y() as u16;
@@ -274,7 +273,6 @@ impl Snake {
                 } else if sprite_idx == 0 && x_is_div && y_is_div {
                     let x_div = x >> 3;
                     let y_div = (y as u8) >> 3;
-                    gba_warning!("{x_div} {y_div}");
 
                     if let Some(_) = fruit.try_eat_fruit((x_div, y_div as u16)) {
                         self.speed += 1;
@@ -287,7 +285,6 @@ impl Snake {
             prev_x = x;
             prev_y = y as u16;
             self.segments[sprite_idx] = Align4(obj);
-            // gba_warning!("{sprite_idx} {} {} {}", x, y, num_iterations);
         }
 
         if last_good_spawn.is_some() {

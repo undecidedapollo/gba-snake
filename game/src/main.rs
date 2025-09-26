@@ -90,22 +90,13 @@ extern "C" fn main() -> ! {
     reset_data_for_game();
     let snake = Snake::init();
     let fruit = FruitManager::init();
-    fruit.spawn_fruit();
-    fruit.spawn_fruit();
 
     let mut loop_counter: u16 = 0;
-    let mask: u16 = (1 << Powers::_256.as_u16()) - 1;
-    let next_num = || (rng::next_u16() & mask) + 64;
-    let mut next_spawn: u16 = next_num();
 
     loop {
         VBlankIntrWait();
         loop_counter = loop_counter.wrapping_add(1);
-        next_spawn = next_spawn.saturating_sub(1);
         snake.tick(fruit);
-        if next_spawn == 0 {
-            fruit.spawn_fruit();
-            next_spawn = next_num();
-        }
+        fruit.tick();
     }
 }

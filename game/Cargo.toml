@@ -21,8 +21,11 @@ panic = "abort"
 [profile.release]
 panic = "abort"
 debug = true
-lto = "thin"       # or "thin" for faster compile, "fat" for max optimization
 opt-level = "z"
+
+[profile.release-thin]
+inherits = "release"
+lto = "thin"       # or "thin" for faster compile, "fat" for max optimization
 
 [profile.release-fat]
 inherits = "release"
