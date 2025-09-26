@@ -2,8 +2,8 @@
 #![no_main]
 
 use core::{fmt::Write, ptr::copy_nonoverlapping};
-use snake::logger;
 use gba::prelude::*;
+use snake::logger;
 
 #[panic_handler]
 fn panic_handler(info: &core::panic::PanicInfo) -> ! {

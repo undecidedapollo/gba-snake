@@ -1,5 +1,8 @@
 use gba::prelude::*;
 
+#[unsafe(link_section = ".ewram")]
+pub static FRAME_KEYS: GbaCell<KeyInput> = GbaCell::new(KeyInput::new());
+
 pub struct StatefulKeys {
     keys: DebouncedKeys,
     last_start_state: bool,

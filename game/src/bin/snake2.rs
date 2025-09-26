@@ -37,7 +37,7 @@ static SNAKE_HEAD_RIGHT: gba::Align4<[u8; 64]> =
 static SNAKE_HEAD_DOWN: gba::Align4<[u8; 64]> =
     include_aligned_bytes!("../../../asset_out/head_down.sprite");
 
-static SNAKE_HEAD_PALETTE: gba::Align4<[u8; 16]> =
+static SNAKE_HEAD_PALETTE: gba::Align4<[u8; 20]> =
     include_aligned_bytes!("../../../asset_out/shared.palette");
 
 #[repr(u8)]
