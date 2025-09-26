@@ -59,10 +59,6 @@ impl Into<u16> for SnakeAnimationTile {
     }
 }
 
-struct Snake {
-    len: u16,
-}
-
 #[unsafe(no_mangle)]
 extern "C" fn main() -> ! {
     logger::init_logger();

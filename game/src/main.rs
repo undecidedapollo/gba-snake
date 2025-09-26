@@ -5,11 +5,11 @@
 use core::{fmt::Write, ptr::copy_nonoverlapping};
 use gba::prelude::*;
 use snake::{
-    assets::{AssetBgTile, FRUIT_BANANA, FRUIT_CHERRY, SHARED_PALETTE},
+    assets::{AssetBgTile, SHARED_PALETTE},
     fruit::FruitManager,
     keys::FRAME_KEYS,
     logger,
-    math::{Powers, divisible_by_num},
+    math::Powers,
     rng::{self},
     snake::Snake,
 };
