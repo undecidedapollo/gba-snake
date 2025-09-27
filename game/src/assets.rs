@@ -125,21 +125,21 @@ pub fn reset_data() {
         );
         let colors: [gba::video::Color; 16] = [
             crate::color::TRANSPARENT, // Can't be accessed by the mapping function being used
+            crate::color::WHITE,
             crate::color::RED,
             crate::color::GREEN,
             crate::color::BLUE,
-            crate::color::TRANSPARENT,
-            crate::color::TRANSPARENT,
-            crate::color::TRANSPARENT,
-            crate::color::TRANSPARENT,
-            crate::color::TRANSPARENT,
-            crate::color::TRANSPARENT,
-            crate::color::TRANSPARENT,
-            crate::color::TRANSPARENT,
-            crate::color::TRANSPARENT,
-            crate::color::TRANSPARENT,
-            crate::color::TRANSPARENT,
-            crate::color::TRANSPARENT,
+            crate::color::YELLOW,
+            crate::color::CYAN,
+            crate::color::MAGENTA,
+            crate::color::ORANGE,
+            crate::color::PURPLE,
+            crate::color::PINK,
+            crate::color::BROWN,
+            crate::color::GRAY,
+            crate::color::LIGHT_GRAY,
+            crate::color::DARK_GREEN,
+            crate::color::BLACK,
         ];
         copy_nonoverlapping(
             colors.as_ptr(),

@@ -66,7 +66,7 @@ macro_rules! ewram_static {
             #[unsafe(link_section = ".ewram")]
             static mut STORAGE: $ty = $init;
 
-            $crate::static_init::StaticCell::new(unsafe { core::ptr::addr_of_mut!(STORAGE) })
+            $crate::static_init::StaticCell::new( core::ptr::addr_of_mut!(STORAGE) )
         };
     };
 }

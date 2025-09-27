@@ -8,6 +8,7 @@ extern crate alloc;
 use gba::prelude::*;
 use snake::{
     assets::{self},
+    color::PaletteColor,
     ewram_static,
     ewramstring::EwramString,
     keys::FRAME_KEYS,
@@ -82,7 +83,9 @@ extern "C" fn main() -> ! {
 
     let str1 = HIGHSCORE_STR.init();
 
-    screen.write_text(2, "Highscore:", (4, 6), 1).forever();
+    screen
+        .write_text(2, "Highscore:", (4, 6), PaletteColor::Red)
+        .forever();
 
     let mut write_tk: Option<WriteTicket> = None;
 
@@ -92,7 +95,7 @@ extern "C" fn main() -> ! {
             write_tk.take();
             str1.clear();
             write!(str1, "{loop_counter}").unwrap();
-            write_tk = Some(screen.write_text(2, str1.as_str(), (4, 7), 2));
+            write_tk = Some(screen.write_text(2, str1.as_str(), (4, 7), PaletteColor::DarkGreen));
         }
         loop_counter = loop_counter.wrapping_add(1);
     }

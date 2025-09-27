@@ -2,10 +2,10 @@
 #![no_main]
 #![feature(maybe_uninit_array_assume_init)]
 
-use core::{array, fmt::Write, ptr::copy_nonoverlapping};
+use core::fmt::Write;
 use gba::prelude::*;
 use snake::{
-    assets::{self, AssetBgTile, SHARED_PALETTE},
+    assets::{self},
     fruit::FruitManager,
     keys::FRAME_KEYS,
     logger,

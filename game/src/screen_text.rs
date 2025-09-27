@@ -7,7 +7,7 @@ use gba::{
 };
 use voladdress::{Safe, VolAddress};
 
-use crate::{ewram_static, static_init::StaticInitSafe};
+use crate::{color::PaletteColor, ewram_static, static_init::StaticInitSafe};
 
 struct CharBlockTicket {
     idx: u16,
@@ -81,7 +81,7 @@ impl ScreenTextManagerStr {
         screenblock_idx: usize,
         str: &str,
         loc: (usize, usize),
-        color_idx: u8,
+        color: PaletteColor,
     ) -> WriteTicket {
         let tile_idx = self.try_lock_first_zero().unwrap();
         let mut base_tile_idx = (tile_idx.idx * 32) as usize + 1;
@@ -109,7 +109,7 @@ impl ScreenTextManagerStr {
             src_byte_len: size_of_val(&tmp) as u16,
             src_elem_width: 1,
             dest_elem_width: 4,
-            offset_and_touch_zero: color_idx.saturating_sub(1) as u32,
+            offset_and_touch_zero: (color as u8).saturating_sub(1) as u32,
         };
         unsafe {
             gba::bios::BitUnPack(tmp.as_ptr() as *const u8, cb.as_usize() as *mut u32, &info)
