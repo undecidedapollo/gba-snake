@@ -52,6 +52,8 @@ const SPEED_FACTOR: usize = 5;
 const SPEED_MASK: u16 = masks::POWERS[SPEED_FACTOR] as u16;
 const BONUS_MOVEMENT_CAP: u16 = 1 << SPEED_FACTOR;
 
+const MAX_SPEED: u16 = 1 << (SPEED_FACTOR + 2);
+
 impl Snake {
     pub fn init() -> &'static mut Self {
         let snake = unsafe { &mut (*core::ptr::addr_of_mut!(SNAKE_STORAGE)) };
@@ -188,6 +190,8 @@ impl Snake {
             let mut y = obj.0.y() as i8;
 
             for iter_num in 0..num_iterations {
+                let movement_dif =
+                    MovementTwoBit::try_from(obj.2.palbank()).unwrap_or(MovementTwoBit::Up);
                 match obj_tile {
                     AssetObjTile::SnakeHeadUp => {
                         y = y.wrapping_sub(1);
@@ -201,40 +205,40 @@ impl Snake {
                     AssetObjTile::SnakeHeadRight => {
                         x = x.wrapping_add(1);
                     }
-                    AssetObjTile::SnakeBody1 => {
-                        let movement_dif =
-                            MovementTwoBit::try_from(obj.2.palbank()).unwrap_or(MovementTwoBit::Up);
-                        match movement_dif {
-                            MovementTwoBit::Up => {
-                                y = y.wrapping_sub(1);
-                            }
-                            MovementTwoBit::Down => {
-                                y = y.wrapping_add(1);
-                            }
-                            MovementTwoBit::Left => {
-                                x = x.wrapping_sub(1);
-                            }
-                            MovementTwoBit::Right => {
-                                x = x.wrapping_add(1);
-                            }
-                            MovementTwoBit::Stall => {}
+                    AssetObjTile::SnakeBody1 => match movement_dif {
+                        MovementTwoBit::Up => {
+                            y = y.wrapping_sub(1);
                         }
-                    }
+                        MovementTwoBit::Down => {
+                            y = y.wrapping_add(1);
+                        }
+                        MovementTwoBit::Left => {
+                            x = x.wrapping_sub(1);
+                        }
+                        MovementTwoBit::Right => {
+                            x = x.wrapping_add(1);
+                        }
+                        MovementTwoBit::Stall => {}
+                    },
                 };
                 x = mask_signed_x(x as i16) as u16;
                 let y_test = y as u16;
                 let x_is_div = divisible_by_num(x, Powers::_8);
                 let y_is_div = divisible_by_num(y_test, Powers::_8);
                 if sprite_idx != 0 && x_is_div && y_is_div {
-                    let movement_dif =
-                        MovementTwoBit::try_from(obj.2.palbank()).unwrap_or(MovementTwoBit::Up);
-
                     let to_update = match movement_dif {
                         MovementTwoBit::Up
                         | MovementTwoBit::Down
                         | MovementTwoBit::Left
                         | MovementTwoBit::Right => {
-                            if prev_x < x {
+                            let keep_old = (movement_dif == MovementTwoBit::Left && prev_x < x)
+                                || (movement_dif == MovementTwoBit::Right && prev_x > x)
+                                || (movement_dif == MovementTwoBit::Up && prev_y < y_test)
+                                || (movement_dif == MovementTwoBit::Down && prev_y > y_test);
+
+                            if keep_old {
+                                Some(movement_dif)
+                            } else if prev_x < x {
                                 Some(MovementTwoBit::Left)
                             } else if prev_x > x {
                                 Some(MovementTwoBit::Right)
@@ -279,7 +283,10 @@ impl Snake {
                     let y_div = (y as u8) >> 3;
 
                     if let Some(_) = fruit.try_eat_fruit((x_div, y_div as u16)) {
-                        self.speed += 1;
+                        if self.speed < MAX_SPEED {
+                            self.speed += 1;
+                        }
+
                         self.should_spawn_segment = true;
                     }
                 }
