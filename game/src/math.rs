@@ -29,3 +29,17 @@ pub fn divisible_by_num(x: u16, power: Powers) -> bool {
     let power = power.as_u16();
     (x >> power << power) == x
 }
+
+pub mod masks {
+    pub const POWERS: [u8; 9] = [
+        0b0000_0000,
+        0b0000_0001,
+        0b0000_0011,
+        0b0000_0111,
+        0b0000_1111,
+        0b0001_1111,
+        0b0011_1111,
+        0b0111_1111,
+        0b1111_1111,
+    ];
+}

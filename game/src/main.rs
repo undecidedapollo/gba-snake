@@ -9,12 +9,13 @@ use snake::{
     fruit::FruitManager,
     keys::FRAME_KEYS,
     logger,
+    score::ScoreManager,
+    screen_text::ScreenTextManager,
     snake::Snake,
 };
 
 #[panic_handler]
 fn panic_handler(info: &core::panic::PanicInfo) -> ! {
-    // #[cfg(debug_assertions)]
     if let Ok(mut logger) = MgbaBufferedLogger::try_new(MgbaMessageLevel::Fatal) {
         writeln!(logger, "{info}").ok();
     }
@@ -40,14 +41,12 @@ extern "C" fn main() -> ! {
 
     VBlankIntrWait();
 
-    let no_display = ObjAttr0::new().with_style(ObjDisplayStyle::NotDisplayed);
-    OBJ_ATTR0.iter().for_each(|va| va.write(no_display));
-
     DISPCNT.write(
         DisplayControl::new()
             .with_video_mode(VideoMode::_0)
             .with_obj_vram_1d(true)
             .with_show_bg0(true)
+            .with_show_bg1(true)
             .with_show_obj(true),
     );
     BG0CNT.write(
@@ -57,8 +56,16 @@ extern "C" fn main() -> ! {
             .with_bpp8(true)
             .with_charblock(0),
     );
+    BG1CNT.write(
+        BackgroundControl::new()
+            .with_size(0)
+            .with_screenblock(2)
+            .with_bpp8(false)
+            .with_charblock(1),
+    );
 
     assets::reset_data();
+    let screen = ScreenTextManager.init();
     let snake = Snake::init();
     let fruit = FruitManager::init();
 
@@ -69,5 +76,6 @@ extern "C" fn main() -> ! {
         loop_counter = loop_counter.wrapping_add(1);
         snake.tick(fruit);
         fruit.tick();
+        ScoreManager::tick(screen);
     }
 }

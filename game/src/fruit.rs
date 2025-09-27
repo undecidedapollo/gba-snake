@@ -6,6 +6,7 @@ use crate::{
     assets::{AssetBgTile, FRUIT_BANANA, FRUIT_CHERRY},
     math::Powers,
     rng::{self},
+    score::ScoreManager,
 };
 
 pub struct FruitManager {
@@ -77,6 +78,8 @@ impl FruitManager {
         let Some(idx) = self.fruit_exists_idx(loc) else {
             return None;
         };
+
+        ScoreManager::add_to_score(100);
 
         self.fruit_locs[idx] = None;
         let new_idx = TEXT_SCREENBLOCKS

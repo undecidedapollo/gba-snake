@@ -50,6 +50,14 @@ impl<T: StaticInitSafe> StaticCell<T> {
         unsafe { &mut *self.ptr }
     }
 
+    pub fn get_or_init(&self) -> &'static mut T {
+        if self.is_init() {
+            self.get()
+        } else {
+            self.init()
+        }
+    }
+
     /// Check if initialized without panicking
     pub fn is_init(&self) -> bool {
         self.has_init.read()

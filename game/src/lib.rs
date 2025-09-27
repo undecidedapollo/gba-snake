@@ -11,6 +11,7 @@ pub mod keys;
 pub mod logger;
 pub mod math;
 pub mod rng;
+pub mod score;
 pub mod screen_text;
 pub mod snake;
 pub mod static_init;

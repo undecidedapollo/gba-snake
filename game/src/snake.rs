@@ -11,7 +11,7 @@ use crate::{
     fruit::FruitManager,
     gba_warning,
     keys::FRAME_KEYS,
-    math::{Powers, divisible_by_num},
+    math::{Powers, divisible_by_num, masks},
 };
 
 #[derive(IntoPrimitive, Debug, Eq, PartialEq, TryFromPrimitive)]
@@ -47,6 +47,10 @@ static mut SNAKE_STORAGE: Snake = Snake {
     should_spawn_segment: false,
     segments: [const { Align4(ObjAttr::new()) }; 64],
 };
+
+const SPEED_FACTOR: usize = 5;
+const SPEED_MASK: u16 = masks::POWERS[SPEED_FACTOR] as u16;
+const BONUS_MOVEMENT_CAP: u16 = 1 << SPEED_FACTOR;
 
 impl Snake {
     pub fn init() -> &'static mut Self {
@@ -159,11 +163,11 @@ impl Snake {
             head.set_tile_id(self.next_dir.into());
         }
 
-        let mut num_iterations = self.speed >> 4;
-        self.bonus_movement_counter += self.speed & 0xF;
+        let mut num_iterations = self.speed >> SPEED_FACTOR;
+        self.bonus_movement_counter += self.speed & SPEED_MASK;
 
-        if self.bonus_movement_counter >= 16 {
-            self.bonus_movement_counter = self.bonus_movement_counter - 16;
+        if self.bonus_movement_counter >= BONUS_MOVEMENT_CAP {
+            self.bonus_movement_counter = self.bonus_movement_counter - BONUS_MOVEMENT_CAP;
             num_iterations += 1;
         }
 
