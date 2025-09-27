@@ -82,22 +82,33 @@ impl ScreenTextManagerStr {
         str: &str,
         loc: (usize, usize),
         color: PaletteColor,
-    ) -> WriteTicket {
+        overflow: bool,
+    ) -> Option<WriteTicket> {
         let tile_idx = self.try_lock_first_zero().unwrap();
         let mut base_tile_idx = (tile_idx.idx * 32) as usize + 1;
         let cb: VolAddress<[u32; 8], Safe, Safe> = CHARBLOCK1_4BPP.index(base_tile_idx);
-        let menu = TEXT_SCREENBLOCKS.get_frame(screenblock_idx).unwrap();
+        let menu = TEXT_SCREENBLOCKS.get_frame(screenblock_idx)?;
 
         // assert!(b.len() >= 256);
         let mut tmp: [u32; 64] = core::array::repeat(0);
-        for (idx, ch) in str.chars().into_iter().enumerate() {
-            let x = loc.0 + idx;
-            let y = loc.1;
-            menu.index(x, y).write(
-                TextEntry::new()
-                    .with_tile(base_tile_idx as u16)
-                    .with_palbank(15),
-            );
+        for (idx, ch) in str.chars().into_iter().take(32).enumerate() {
+            let mut x = loc.0 + idx;
+            let mut y = loc.1;
+            if x >= 30 {
+                if !overflow {
+                    break;
+                }
+                x -= 30;
+                y += 1;
+            }
+
+            if let Some(text_entry_spot) = menu.get(x, y) {
+                text_entry_spot.write(
+                    TextEntry::new()
+                        .with_tile(base_tile_idx as u16)
+                        .with_palbank(15),
+                );
+            }
             let base_idx = idx * 2;
             let base_char = ch as usize * 2;
             tmp[base_idx] = CGA_8X8_THICK[base_char];
@@ -114,9 +125,9 @@ impl ScreenTextManagerStr {
         unsafe {
             gba::bios::BitUnPack(tmp.as_ptr() as *const u8, cb.as_usize() as *mut u32, &info)
         };
-        WriteTicket {
+        Some(WriteTicket {
             ticket: tile_idx.ticket,
-        }
+        })
     }
 }
 

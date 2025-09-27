@@ -64,39 +64,15 @@ impl Into<u16> for AssetBgTile {
     }
 }
 
-pub fn reset_data() {
-    let mut ottr = ObjAttr::new();
-    ottr.0 = ottr.0.with_style(ObjDisplayStyle::NotDisplayed);
-    OBJ_ATTR_ALL.iter().for_each(|va| va.write(ottr));
-
+pub fn zero_screenblock(frame: usize) {
+    // Zero out the screenblock
     let zeros: [u32; 32] = core::array::repeat(0);
-    // Zero out the background
     for i in 0..16 {
         unsafe {
             copy_nonoverlapping(
                 zeros.as_ptr(),
                 TEXT_SCREENBLOCKS
-                    .get_frame(1)
-                    .unwrap()
-                    .get_row(i * 2)
-                    .unwrap()
-                    .as_usize() as *mut u32,
-                zeros.len(),
-            );
-            copy_nonoverlapping(
-                zeros.as_ptr(),
-                TEXT_SCREENBLOCKS
-                    .get_frame(2)
-                    .unwrap()
-                    .get_row(i * 2)
-                    .unwrap()
-                    .as_usize() as *mut u32,
-                zeros.len(),
-            );
-            copy_nonoverlapping(
-                zeros.as_ptr(),
-                TEXT_SCREENBLOCKS
-                    .get_frame(3)
+                    .get_frame(frame)
                     .unwrap()
                     .get_row(i * 2)
                     .unwrap()
@@ -105,6 +81,19 @@ pub fn reset_data() {
             );
         }
     }
+}
+
+pub fn reset_data() {
+    let mut ottr = ObjAttr::new();
+    ottr.0 = ottr.0.with_style(ObjDisplayStyle::NotDisplayed);
+    OBJ_ATTR_ALL.iter().for_each(|va| va.write(ottr));
+
+    zero_screenblock(0);
+    zero_screenblock(1);
+    zero_screenblock(2);
+    zero_screenblock(3);
+
+    let zeros: [u32; 32] = core::array::repeat(0);
 
     // Make the zero-th tile transparent
     unsafe {
