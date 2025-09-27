@@ -15,7 +15,7 @@ struct CharBlockTicket {
 }
 
 pub struct WriteTicket {
-    ticket: u16,
+    pub ticket: u16,
 }
 
 impl WriteTicket {
@@ -74,6 +74,10 @@ impl ScreenTextManagerStr {
 
     pub fn unlock(&mut self, ticket: u16) {
         self.char_free_bits &= !ticket;
+    }
+
+    pub fn unlock_all(&mut self) {
+        self.unlock(0xFFFF); // Free all char blocks
     }
 
     pub fn write_text(
