@@ -1,15 +1,18 @@
 #![no_std]
 #![no_main]
 #![feature(maybe_uninit_array_assume_init)]
+#![feature(alloc_error_handler)]
 
-use core::{array, fmt::Write, ptr::copy_nonoverlapping};
+use core::fmt::Write;
+extern crate alloc;
 use gba::prelude::*;
 use snake::{
-    assets::{self, AssetBgTile, SHARED_PALETTE},
-    fruit::FruitManager,
+    assets::{self},
+    ewram_static,
+    ewramstring::EwramString,
     keys::FRAME_KEYS,
     logger,
-    snake::Snake,
+    screen_text::{ScreenTextManager, WriteTicket},
 };
 
 #[panic_handler]
@@ -28,6 +31,10 @@ extern "C" fn irq_handler(b: IrqBits) {
         FRAME_KEYS.write(KEYINPUT.read());
     }
 }
+
+ewram_static!(pub HIGHSCORE_STR: EwramString<64> = EwramString::new());
+// ewram_static!(pub STR_BUF_2: EwramString<64> = EwramString::new());
+// ewram_static!(pub STR_BUF_3: EwramString<256> = EwramString::new());
 
 #[unsafe(no_mangle)]
 extern "C" fn main() -> ! {
@@ -48,6 +55,7 @@ extern "C" fn main() -> ! {
             .with_video_mode(VideoMode::_0)
             .with_obj_vram_1d(true)
             .with_show_bg0(true)
+            .with_show_bg1(true)
             .with_show_obj(true),
     );
     BG0CNT.write(
@@ -57,17 +65,35 @@ extern "C" fn main() -> ! {
             .with_bpp8(true)
             .with_charblock(0),
     );
+    BG1CNT.write(
+        BackgroundControl::new()
+            .with_size(0)
+            .with_screenblock(2)
+            .with_bpp8(false)
+            .with_charblock(1),
+    );
 
     assets::reset_data();
-    let snake = Snake::init();
-    let fruit = FruitManager::init();
+    let screen = ScreenTextManager.init();
+    // let snake = Snake::init();
+    // let fruit = FruitManager::init();
 
     let mut loop_counter: u16 = 0;
 
+    let str1 = HIGHSCORE_STR.init();
+
+    screen.write_text(2, "Highscore:", (4, 6), 1).forever();
+
+    let mut write_tk: Option<WriteTicket> = None;
+
     loop {
         VBlankIntrWait();
+        if loop_counter % 60 == 0 {
+            write_tk.take();
+            str1.clear();
+            write!(str1, "{loop_counter}").unwrap();
+            write_tk = Some(screen.write_text(2, str1.as_str(), (4, 7), 2));
+        }
         loop_counter = loop_counter.wrapping_add(1);
-        snake.tick(fruit);
-        fruit.tick();
     }
 }

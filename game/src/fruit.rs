@@ -103,8 +103,8 @@ impl FruitManager {
     }
 
     fn spawn_fruit_at_idx(&mut self, idx: usize) {
-        let mut x: usize = 0;
-        let mut y: usize = 0;
+        let mut x: usize;
+        let mut y: usize;
         loop {
             x = (rng::next_u32() >> 8) as usize & 0b0000_1111;
             y = (rng::next_u32() >> 8) as usize & 0b0000_1111;
