@@ -6,12 +6,13 @@ use core::fmt::Write;
 use gba::prelude::*;
 use snake::{
     assets::{self},
+    color::PaletteColor,
     fruit::FruitManager,
     keys::FRAME_KEYS,
     logger,
     score::ScoreManager,
     screen_text::ScreenTextManager,
-    snake::Snake,
+    snake::{Snake, SnakeTickResponse},
 };
 
 #[panic_handler]
@@ -65,7 +66,7 @@ extern "C" fn main() -> ! {
     );
 
     assets::reset_data();
-    let screen = ScreenTextManager.init();
+
     let snake = Snake::init();
     let fruit = FruitManager::init();
 
@@ -74,8 +75,37 @@ extern "C" fn main() -> ! {
     loop {
         VBlankIntrWait();
         loop_counter = loop_counter.wrapping_add(1);
-        snake.tick(fruit);
+        match snake.tick(fruit) {
+            SnakeTickResponse::None => {}
+            SnakeTickResponse::GameOver => {
+                assets::reset_data();
+                ScoreManager::reset_w_score();
+
+                for _ in 0..5 {
+                    VBlankIntrWait();
+                }
+
+                let mut go_text =
+                    ScreenTextManager::write_text(2, "GAME OVER", (5, 6), PaletteColor::Red, false);
+
+                for _ in 0..120 {
+                    VBlankIntrWait();
+                }
+                loop_counter = 0;
+                go_text.take();
+
+                ScreenTextManager::unlock_all();
+                assets::reset_data();
+                snake.reset();
+                fruit.reset();
+
+                VBlankIntrWait();
+                VBlankIntrWait();
+                ScoreManager::reset(0);
+                continue;
+            }
+        }
         fruit.tick();
-        ScoreManager::tick(screen);
+        ScoreManager::tick();
     }
 }

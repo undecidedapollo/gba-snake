@@ -24,7 +24,7 @@ impl WriteTicket {
     }
 
     pub fn clear(&mut self) {
-        ScreenTextManager.get().unlock(self.ticket);
+        screen.get_or_init().unlock(self.ticket);
         while let idx = self.ticket.trailing_zeros() as u16
             && idx != 16
         {
@@ -52,13 +52,13 @@ impl Drop for WriteTicket {
     }
 }
 
-pub struct ScreenTextManagerStr {
+pub struct ScreenTextManager {
     char_free_bits: u16,
 }
 
-impl ScreenTextManagerStr {
+impl ScreenTextManager {
     const fn new() -> Self {
-        ScreenTextManagerStr { char_free_bits: 0 }
+        ScreenTextManager { char_free_bits: 0 }
     }
 
     fn try_lock_first_zero(&mut self) -> Option<CharBlockTicket> {
@@ -72,23 +72,23 @@ impl ScreenTextManagerStr {
         Some(CharBlockTicket { idx, ticket })
     }
 
-    pub fn unlock(&mut self, ticket: u16) {
+    fn unlock(&mut self, ticket: u16) {
         self.char_free_bits &= !ticket;
     }
 
-    pub fn unlock_all(&mut self) {
-        self.unlock(0xFFFF); // Free all char blocks
+    pub fn unlock_all() {
+        screen.get_or_init().unlock(0xFFFF);
     }
 
     pub fn write_text(
-        &mut self,
         screenblock_idx: usize,
         str: &str,
         loc: (usize, usize),
         color: PaletteColor,
         overflow: bool,
     ) -> Option<WriteTicket> {
-        let tile_idx = self.try_lock_first_zero().unwrap();
+        let manager = screen.get_or_init();
+        let tile_idx = manager.try_lock_first_zero().unwrap();
         let mut base_tile_idx = (tile_idx.idx * 32) as usize + 1;
         let cb: VolAddress<[u32; 8], Safe, Safe> = CHARBLOCK1_4BPP.index(base_tile_idx);
         let menu = TEXT_SCREENBLOCKS.get_frame(screenblock_idx)?;
@@ -135,8 +135,8 @@ impl ScreenTextManagerStr {
     }
 }
 
-ewram_static!(pub ScreenTextManager: ScreenTextManagerStr = ScreenTextManagerStr::new());
+ewram_static!(screen: ScreenTextManager = ScreenTextManager::new());
 
-unsafe impl StaticInitSafe for ScreenTextManagerStr {
+unsafe impl StaticInitSafe for ScreenTextManager {
     // Uses default no-op init
 }

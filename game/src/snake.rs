@@ -35,7 +35,7 @@ pub struct Snake {
     bonus_movement_counter: u16,
     next_dir: AssetObjTile,
     should_spawn_segment: bool,
-    segments: [Align4<ObjAttr>; 64],
+    segments: [Align4<ObjAttr>; 96],
 }
 
 #[unsafe(link_section = ".ewram")]
@@ -45,19 +45,28 @@ static mut SNAKE_STORAGE: Snake = Snake {
     bonus_movement_counter: 0,
     next_dir: AssetObjTile::SnakeHeadUp,
     should_spawn_segment: false,
-    segments: [const { Align4(ObjAttr::new()) }; 64],
+    segments: [const { Align4(ObjAttr::new()) }; 96],
 };
 
-const SPEED_FACTOR: usize = 5;
+const SPEED_FACTOR: usize = 6;
 const SPEED_MASK: u16 = masks::POWERS[SPEED_FACTOR] as u16;
 const BONUS_MOVEMENT_CAP: u16 = 1 << SPEED_FACTOR;
 
-const MAX_SPEED: u16 = 1 << (SPEED_FACTOR + 2);
+const MAX_SPEED: u16 = 1 << (SPEED_FACTOR + 1);
+
+pub enum SnakeTickResponse {
+    None,
+    GameOver,
+}
 
 impl Snake {
     pub fn init() -> &'static mut Self {
         let snake = unsafe { &mut (*core::ptr::addr_of_mut!(SNAKE_STORAGE)) };
+        snake.reset();
+        snake
+    }
 
+    pub fn reset(&mut self) {
         unsafe {
             copy_nonoverlapping(
                 SNAKE_HEAD_UP.0.as_ptr(),
@@ -92,13 +101,8 @@ impl Snake {
             );
         }
 
-        snake.reset();
-        snake
-    }
-
-    pub fn reset(&mut self) {
         self.len = 1;
-        self.speed = 12;
+        self.speed = 24;
         self.bonus_movement_counter = 0;
         self.next_dir = AssetObjTile::SnakeHeadUp;
 
@@ -127,6 +131,7 @@ impl Snake {
         );
         self.len += 1;
         self.should_spawn_segment = false;
+        gba_warning!("Segment created {}", self.len);
     }
 
     fn init_snake_tile(
@@ -147,9 +152,11 @@ impl Snake {
         Align4(obj)
     }
 
-    pub fn tick(&mut self, fruit: &mut FruitManager) {
+    pub fn tick(&mut self, fruit: &mut FruitManager) -> SnakeTickResponse {
         let k = FRAME_KEYS.read();
-        let mut head = self.segments[0].0;
+        let head: ObjAttr = self.segments[0].0;
+        let cur_head_tile: AssetObjTile =
+            AssetObjTile::try_from(head.2.tile_id() as u8).unwrap_or(AssetObjTile::SnakeHeadUp);
 
         if k.left() {
             self.next_dir = AssetObjTile::SnakeHeadLeft;
@@ -159,10 +166,10 @@ impl Snake {
             self.next_dir = AssetObjTile::SnakeHeadUp;
         } else if k.down() {
             self.next_dir = AssetObjTile::SnakeHeadDown;
-        }
-
-        if divisible_by_num(head.1.x(), Powers::_8) && divisible_by_num(head.0.y(), Powers::_8) {
-            head.set_tile_id(self.next_dir.into());
+        } else if k.a() {
+            return SnakeTickResponse::GameOver;
+        } else if k.b() {
+            self.should_spawn_segment = true;
         }
 
         let mut num_iterations = self.speed >> SPEED_FACTOR;
@@ -184,12 +191,13 @@ impl Snake {
             } else {
                 self.segments[sprite_idx].0
             };
-            let obj_tile: AssetObjTile =
-                AssetObjTile::try_from(obj.2.tile_id() as u8).unwrap_or(AssetObjTile::SnakeHeadUp);
+
             let mut x = obj.1.x();
             let mut y = obj.0.y() as i8;
 
             for iter_num in 0..num_iterations {
+                let obj_tile: AssetObjTile = AssetObjTile::try_from(obj.2.tile_id() as u8)
+                    .unwrap_or(AssetObjTile::SnakeHeadUp);
                 let movement_dif =
                     MovementTwoBit::try_from(obj.2.palbank()).unwrap_or(MovementTwoBit::Up);
                 match obj_tile {
@@ -282,11 +290,39 @@ impl Snake {
                     let x_div = x >> 3;
                     let y_div = (y as u8) >> 3;
 
-                    if let Some(_) = fruit.try_eat_fruit((x_div, y_div as u16)) {
-                        if self.speed < MAX_SPEED {
-                            self.speed += 1;
-                        }
+                    // Check for collisions w/ self
+                    if let Some(_) = self.segments[1..]
+                        .iter()
+                        .take(self.len - 1)
+                        .filter(|x| {
+                            AssetObjTile::try_from(x.0.2.tile_id() as u8)
+                                .unwrap_or(AssetObjTile::SnakeHeadUp)
+                                == AssetObjTile::SnakeBody1
+                                && MovementTwoBit::try_from(x.0.2.palbank())
+                                    .unwrap_or(MovementTwoBit::Up)
+                                    != MovementTwoBit::Stall
+                        })
+                        .find(|&cur_obj| {
+                            let check_x = cur_obj.0.1.x() >> 3;
+                            let check_y = cur_obj.0.0.y() >> 3;
+                            return check_x == x_div && check_y == y_div as u16;
+                        })
+                    {
+                        return SnakeTickResponse::GameOver;
+                    }
 
+                    // Ensure we don't go the opposite way we are currently going
+                    match (cur_head_tile, self.next_dir) {
+                        (AssetObjTile::SnakeHeadLeft, AssetObjTile::SnakeHeadRight)
+                        | (AssetObjTile::SnakeHeadRight, AssetObjTile::SnakeHeadLeft)
+                        | (AssetObjTile::SnakeHeadUp, AssetObjTile::SnakeHeadDown)
+                        | (AssetObjTile::SnakeHeadDown, AssetObjTile::SnakeHeadUp) => {}
+                        _ => {
+                            obj.set_tile_id(self.next_dir.into());
+                        }
+                    };
+
+                    if let Some(_) = fruit.try_eat_fruit((x_div, y_div as u16)) {
                         self.should_spawn_segment = true;
                     }
                 }
@@ -300,6 +336,9 @@ impl Snake {
 
         if last_good_spawn.is_some() {
             self.create_new_segment(last_good_spawn);
+            if self.speed < MAX_SPEED {
+                self.speed += 2;
+            }
         }
 
         unsafe {
@@ -309,5 +348,6 @@ impl Snake {
                 self.len,
             );
         }
+        SnakeTickResponse::None
     }
 }

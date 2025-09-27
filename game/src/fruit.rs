@@ -23,7 +23,11 @@ pub static mut FRUIT_MANAGER_STORAGE: FruitManager = FruitManager {
 impl FruitManager {
     pub fn init() -> &'static mut Self {
         let fruit = unsafe { &mut (*core::ptr::addr_of_mut!(FRUIT_MANAGER_STORAGE)) };
+        fruit.reset();
+        fruit
+    }
 
+    pub fn reset(&mut self) {
         unsafe {
             copy_nonoverlapping(
                 FRUIT_CHERRY.0.as_ptr(),
@@ -36,11 +40,6 @@ impl FruitManager {
                 FRUIT_BANANA.0.len(),
             );
         }
-
-        fruit
-    }
-
-    pub fn reset(&mut self) {
         let zeros: [u32; 32] = core::array::repeat(0);
         // Zero out the background
         for i in 0..16 {

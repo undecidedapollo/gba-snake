@@ -75,7 +75,6 @@ extern "C" fn main() -> ! {
     );
 
     assets::reset_data();
-    let screen = ScreenTextManager.init();
     // let snake = Snake::init();
     // let fruit = FruitManager::init();
 
@@ -83,15 +82,14 @@ extern "C" fn main() -> ! {
 
     let str1 = HIGHSCORE_STR.init();
 
-    screen
-        .write_text(
-            2,
-            "Highscore this is a test of the overflow:",
-            (4, 6),
-            PaletteColor::Red,
-            false,
-        )
-        .map(|x| x.forever());
+    ScreenTextManager::write_text(
+        2,
+        "Highscore this is a test of the overflow:",
+        (4, 6),
+        PaletteColor::Red,
+        false,
+    )
+    .map(|x| x.forever());
 
     let mut write_tk: Option<WriteTicket> = None;
 
@@ -101,7 +99,13 @@ extern "C" fn main() -> ! {
             write_tk.take();
             str1.clear();
             write!(str1, "{loop_counter}").unwrap();
-            write_tk = screen.write_text(2, str1.as_str(), (4, 7), PaletteColor::DarkGreen, false);
+            write_tk = ScreenTextManager::write_text(
+                2,
+                str1.as_str(),
+                (4, 7),
+                PaletteColor::DarkGreen,
+                false,
+            );
         }
         loop_counter = loop_counter.wrapping_add(1);
     }
