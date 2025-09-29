@@ -8,21 +8,19 @@ use gba::{
 };
 use num_enum::{IntoPrimitive, TryFromPrimitive};
 
-pub static SHARED_PALETTE: Align4<[u8; 20]> =
-    include_aligned_bytes!("../../asset_out/shared.palette");
+pub static SHARED_PALETTE: Align4<[u8; 20]> = include_aligned_bytes!("../asset_out/shared.palette");
 
-pub static SNAKE_HEAD_UP: Align4<[u8; 64]> =
-    include_aligned_bytes!("../../asset_out/head_up.sprite");
+pub static SNAKE_HEAD_UP: Align4<[u8; 64]> = include_aligned_bytes!("../asset_out/head_up.sprite");
 pub static SNAKE_HEAD_LEFT: Align4<[u8; 64]> =
-    include_aligned_bytes!("../../asset_out/head_left.sprite");
+    include_aligned_bytes!("../asset_out/head_left.sprite");
 pub static SNAKE_HEAD_RIGHT: Align4<[u8; 64]> =
-    include_aligned_bytes!("../../asset_out/head_right.sprite");
+    include_aligned_bytes!("../asset_out/head_right.sprite");
 pub static SNAKE_HEAD_DOWN: Align4<[u8; 64]> =
-    include_aligned_bytes!("../../asset_out/head_down.sprite");
-pub static SNAKE_BODY_1: Align4<[u8; 64]> = include_aligned_bytes!("../../asset_out/body_1.sprite");
+    include_aligned_bytes!("../asset_out/head_down.sprite");
+pub static SNAKE_BODY_1: Align4<[u8; 64]> = include_aligned_bytes!("../asset_out/body_1.sprite");
 
-pub static FRUIT_CHERRY: Align4<[u8; 64]> = include_aligned_bytes!("../../asset_out/cherry.sprite");
-pub static FRUIT_BANANA: Align4<[u8; 64]> = include_aligned_bytes!("../../asset_out/banana.sprite");
+pub static FRUIT_CHERRY: Align4<[u8; 64]> = include_aligned_bytes!("../asset_out/cherry.sprite");
+pub static FRUIT_BANANA: Align4<[u8; 64]> = include_aligned_bytes!("../asset_out/banana.sprite");
 
 #[derive(IntoPrimitive, Debug, Eq, PartialEq, TryFromPrimitive, Clone, Copy)]
 #[repr(u8)]

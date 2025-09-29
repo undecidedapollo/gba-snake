@@ -28,10 +28,10 @@ extern "C" fn irq_handler(b: IrqBits) {
     }
 }
 
-static TEST_TILE: gba::Align4<[u8; 256]> = include_aligned_bytes!("../../../asset_out/bob.sprite");
+static TEST_TILE: gba::Align4<[u8; 256]> = include_aligned_bytes!("../../asset_out/bob.sprite");
 
 static TEST_PALETTE: gba::Align4<[u8; 20]> =
-    include_aligned_bytes!("../../../asset_out/shared.palette");
+    include_aligned_bytes!("../../asset_out/shared.palette");
 
 #[unsafe(no_mangle)]
 extern "C" fn main() -> ! {
